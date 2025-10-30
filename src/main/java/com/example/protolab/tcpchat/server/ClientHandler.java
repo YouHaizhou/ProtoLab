@@ -10,6 +10,7 @@ public class ClientHandler implements Runnable {
     private BufferedReader input;
     private PrintWriter output;
     private String clientAddress;
+    private String nickName;
 
     public ClientHandler(Socket socket, ChatServer server) {
         this.clientSocket = socket;
@@ -24,15 +25,29 @@ public class ClientHandler implements Runnable {
             input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             output = new PrintWriter(clientSocket.getOutputStream(), true);
 
+            //用户昵称
+            output.println("输入你的昵称：");
+            nickName = input.readLine();
+            if(nickName == null || nickName.trim().isEmpty()) {
+                nickName = "匿名用户" + "(" + clientAddress + ")";
+            } else {
+                nickName = nickName.trim();
+            }
+            server.broadcast("系统：" + nickName + "加入了聊天室", this);
+
+            //广播信息
             String message;
             while ((message = input.readLine()) != null) {
-                System.out.println("来自 " + clientAddress + " 的消息：" + message);
-                server.broadcast(message, this);
+                System.out.println(nickName + "(" + clientAddress + ") 说：" +message);
+                server.broadcast(nickName + ":" + message, this);
             }
 
         } catch (IOException e) {
             System.err.println("客户端异常：" + clientAddress + " - " + e.getMessage());
         } finally {
+            if(nickName != null) {
+                server.broadcast("系统: " + nickName + " 离开了聊天室", null);
+            }
             closeConnection();
             server.removeClient(this);
         }
@@ -44,6 +59,10 @@ public class ClientHandler implements Runnable {
 
     public String getClientAddress() {
         return clientAddress;
+    }
+
+    public String getNickname() {
+        return nickName;
     }
 
     private void closeConnection() {

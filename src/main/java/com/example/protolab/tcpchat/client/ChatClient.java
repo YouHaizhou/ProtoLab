@@ -9,6 +9,7 @@ public class ChatClient {
     private Socket socket;
     private BufferedReader input;
     private PrintWriter output;
+    private String nickName;
 
     public void start() {
         try{
@@ -26,12 +27,31 @@ public class ChatClient {
 
     private void sendMessages() {
         try(BufferedReader console = new BufferedReader(new InputStreamReader(System.in))){
+            // 等待服务器请求昵称
+            String serverMessage;
+            while ((serverMessage = input.readLine()) != null) {
+                System.out.println(serverMessage);
+
+                if (serverMessage.contains("输入你的昵称")) {
+                    System.out.print("> ");
+                    nickName = console.readLine();
+                    output.println(nickName);
+                    System.out.println("昵称设置成功: " + nickName);
+                    System.out.println("开始聊天吧! (输入 'quit' 退出)");
+                    break;
+                }
+            }
+
             String message;
             while((message = console.readLine()) != null){
+                if("quit".equalsIgnoreCase(message)){
+                    break;
+                }
                 output.println(message);
             }
+
         } catch (IOException e){
-            System.err.println("发送消息时失败：" + e.getMessage());
+            System.err.println("发送消息失败：" + e.getMessage());
         }
     }
 
@@ -39,7 +59,7 @@ public class ChatClient {
         try{
             String message;
             while((message = input.readLine()) != null){
-                System.out.println("收到消息：" + message);
+                System.out.println(message);
             }
         } catch (IOException e){
             System.out.println("接收消息失败：" + e.getMessage());

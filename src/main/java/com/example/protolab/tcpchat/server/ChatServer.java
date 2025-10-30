@@ -34,6 +34,15 @@ public class ChatServer {
                 client.sendMessage(message);
             }
         }
+        System.out.println("[广播] " +message);
+    }
+
+    public String getOnlineUsers() {
+        StringBuilder users = new StringBuilder("在线用户：");
+        for(ClientHandler client : clients) {
+            users.append(client.getNickname()).append(", ");
+        }
+        return users.toString();
     }
 
     public void removeClient(ClientHandler client) {
